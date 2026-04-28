@@ -1,0 +1,15 @@
+# Stage 1: Build
+FROM node:22-alpine AS build
+WORKDIR /app
+COPY package*.json ./
+RUN npm install
+COPY . .
+RUN npm run build
+
+# Stage 2: Serve
+FROM node:22-alpine
+WORKDIR /app
+COPY --from=build /app/dist/JobPortalFrontend /app/dist/JobPortalFrontend
+EXPOSE 4000
+# Update the path based on actual build output structure
+CMD ["node", "dist/JobPortalFrontend/server/server.mjs"]

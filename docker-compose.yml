@@ -1,0 +1,6 @@
+services:
+  frontend:
+    build: .
+    container_name: frontend-standalone
+    ports:
+      - "4000:4000"
