@@ -1,0 +1,126 @@
+<div class="min-h-screen bg-white dark:bg-gray-950 transition-colors duration-700" (dblclick)="toggleTheme()">
+  <div class="container mx-auto px-6 py-12 max-w-4xl">
+    
+    <!-- Header -->
+    <div class="mb-12 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+      <div>
+        <h1 class="text-4xl font-black text-gray-900 dark:text-white tracking-tight uppercase">
+          {{ user.role === 'Candidate' ? 'My Profile' : 'Company Profile' }}
+        </h1>
+        <p class="text-gray-500 dark:text-gray-400 font-medium mt-2 tracking-wide uppercase text-xs">
+          Manage your personal and professional information
+        </p>
+      </div>
+      <div class="flex items-center space-x-4">
+        <span class="px-4 py-2 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-xl text-xs font-black uppercase tracking-widest">
+          {{ user.role }}
+        </span>
+      </div>
+    </div>
+
+    @if (loading()) {
+      <div class="text-center py-20">
+        <div class="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+        <p class="text-gray-500 font-bold uppercase tracking-widest text-sm">Loading your profile...</p>
+      </div>
+    } @else {
+      
+      <div class="bg-gray-50 dark:bg-gray-900 rounded-[2.5rem] border border-gray-100 dark:border-gray-800 p-8 md:p-12 shadow-2xl">
+        
+        <form (ngSubmit)="saveProfile()" #profileForm="ngForm" class="space-y-8">
+          
+          <!-- Shared: Avatar Placeholder -->
+          <div class="flex items-center space-x-8 mb-12">
+            <div class="w-24 h-24 bg-indigo-600 rounded-3xl flex items-center justify-center text-white text-4xl font-black shadow-xl shadow-indigo-500/20">
+              {{ (user.role === 'Candidate' ? candidateModel.fullName : recruiterModel.companyName)?.substring(0,1) || user.email?.substring(0,1) }}
+            </div>
+            <div>
+              <h3 class="text-xl font-bold text-gray-900 dark:text-white">{{ user.email }}</h3>
+              <p class="text-gray-500 text-sm font-medium">Profile ID: {{ isNewProfile ? 'Not Created' : (user.role === 'Candidate' ? candidateModel.id : recruiterModel.id) }}</p>
+            </div>
+          </div>
+
+          <!-- Candidate Fields -->
+          @if (user.role === 'Candidate') {
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div class="space-y-2">
+                <label class="block text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1">Full Name</label>
+                <input type="text" [(ngModel)]="candidateModel.fullName" name="fullName" required
+                  class="w-full bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl px-6 py-4 text-gray-900 dark:text-white font-bold focus:ring-2 focus:ring-indigo-500 transition-all outline-none">
+              </div>
+
+              <div class="space-y-2">
+                <label class="block text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1">Phone Number</label>
+                <input type="text" [(ngModel)]="candidateModel.phoneNumber" name="phoneNumber" required pattern="^\d{10}$"
+                  placeholder="10 digit number"
+                  class="w-full bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl px-6 py-4 text-gray-900 dark:text-white font-bold focus:ring-2 focus:ring-indigo-500 transition-all outline-none">
+              </div>
+
+              <div class="md:col-span-2 space-y-2">
+                <label class="block text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1">Bio</label>
+                <textarea [(ngModel)]="candidateModel.bio" name="bio" rows="4"
+                  class="w-full bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl px-6 py-4 text-gray-900 dark:text-white font-bold focus:ring-2 focus:ring-indigo-500 transition-all outline-none resize-none"></textarea>
+              </div>
+
+              <div class="md:col-span-2 space-y-4">
+                <label class="block text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1">Skills</label>
+                <div class="flex gap-4">
+                  <input type="text" [(ngModel)]="newSkill" name="newSkill" (keyup.enter)="addSkill()"
+                    placeholder="Add a skill (e.g. Angular, C#, AI)"
+                    class="flex-1 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl px-6 py-4 text-gray-900 dark:text-white font-bold focus:ring-2 focus:ring-indigo-500 transition-all outline-none">
+                  <button type="button" (click)="addSkill()"
+                    class="px-8 py-4 bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-black rounded-2xl uppercase tracking-widest text-xs hover:scale-105 transition-all">
+                    Add
+                  </button>
+                </div>
+                <div class="flex flex-wrap gap-3">
+                  @for (skill of candidateModel.skills; track $index) {
+                    <div class="group flex items-center bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest">
+                      {{ skill }}
+                      <button type="button" (click)="removeSkill($index)" class="ml-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                      </button>
+                    </div>
+                  }
+                </div>
+              </div>
+            </div>
+          }
+
+          <!-- Recruiter Fields -->
+          @if (user.role === 'Recruiter') {
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div class="space-y-2">
+                <label class="block text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1">Company Name</label>
+                <input type="text" [(ngModel)]="recruiterModel.companyName" name="companyName" required
+                  class="w-full bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl px-6 py-4 text-gray-900 dark:text-white font-bold focus:ring-2 focus:ring-indigo-500 transition-all outline-none">
+              </div>
+
+              <div class="space-y-2">
+                <label class="block text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1">Industry</label>
+                <input type="text" [(ngModel)]="recruiterModel.industry" name="industry"
+                  placeholder="e.g. Technology, Finance"
+                  class="w-full bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl px-6 py-4 text-gray-900 dark:text-white font-bold focus:ring-2 focus:ring-indigo-500 transition-all outline-none">
+              </div>
+
+              <div class="md:col-span-2 space-y-2">
+                <label class="block text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1">Company Website</label>
+                <input type="url" [(ngModel)]="recruiterModel.companyWebsite" name="companyWebsite"
+                  placeholder="https://example.com"
+                  class="w-full bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl px-6 py-4 text-gray-900 dark:text-white font-bold focus:ring-2 focus:ring-indigo-500 transition-all outline-none">
+              </div>
+            </div>
+          }
+
+          <div class="pt-8 flex justify-end">
+            <button type="submit" [disabled]="!profileForm.valid || saving()"
+              class="px-12 py-5 bg-indigo-600 hover:bg-indigo-700 text-white font-black rounded-[2rem] shadow-2xl shadow-indigo-500/20 transition-all transform active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-[0.2em] text-sm">
+              {{ saving() ? 'Saving...' : (isNewProfile ? 'Create Profile' : 'Update Profile') }}
+            </button>
+          </div>
+
+        </form>
+      </div>
+    }
+  </div>
+</div>

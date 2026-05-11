@@ -4,13 +4,13 @@ import { BehaviorSubject, Observable, tap } from 'rxjs';
 import { jwtDecode } from 'jwt-decode';
 import { isPlatformBrowser } from '@angular/common';
 
-import { environment } from '../../environments/environment.development';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
-  private apiUrl = `${environment.apiUrl}/auth`;
+  private apiUrl = environment.apiUrl + '/auth';
   private currentUserSubject = new BehaviorSubject<any>(null);
   public currentUser$ = this.currentUserSubject.asObservable();
 
@@ -40,11 +40,28 @@ export class AuthService {
   }
 
   registerCandidate(userData: any): Observable<any> {
-    return this.http.post(`${this.apiUrl}/register/candidate`, userData);
+    return this.http.post(`${this.apiUrl}/register/candidate`, userData, { responseType: 'text' });
   }
 
   registerRecruiter(userData: any): Observable<any> {
-    return this.http.post(`${this.apiUrl}/register/recruiter`, userData);
+    return this.http.post(`${this.apiUrl}/register/recruiter`, userData, { responseType: 'text' });
+  }
+
+  verifyEmail(email: string, otp: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/verify-email`, { email, otp }, { responseType: 'text' });
+  }
+
+  loginWithGoogle(idToken: string, role?: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/google-login`, { idToken, role }).pipe(
+      tap((response: any) => {
+        if (response && response.token) {
+          if (isPlatformBrowser(this.platformId)) {
+            localStorage.setItem('token', response.token);
+          }
+          this.setUserFromToken(response.token);
+        }
+      })
+    );
   }
 
   logout(): void {

@@ -14,7 +14,7 @@ export interface Job {
   isActive: boolean;
 }
 
-import { environment } from '../../environments/environment.development';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'

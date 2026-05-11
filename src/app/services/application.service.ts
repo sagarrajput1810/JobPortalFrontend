@@ -1,13 +1,23 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { environment } from '../../environments/environment.development';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ApplicationService {
   private apiUrl = `${environment.apiUrl}/application`;
+
+  getResumeUrl(relativeUrl: string): string {
+    if (!relativeUrl) return '';
+    
+    // If it's already an absolute URL (e.g., from Azure Blob), return as is
+    if (relativeUrl.startsWith('http')) return relativeUrl;
+
+    // Use the base API URL instead of hardcoded localhost
+    return `${environment.apiUrl.replace('/gateway', '')}:5243${relativeUrl}`;
+  }
 
   constructor(private http: HttpClient) { }
 
