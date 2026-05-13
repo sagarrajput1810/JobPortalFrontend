@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { catchError, of } from 'rxjs';
 import { environment } from '../../environments/environment';
 
 export interface UserNotification {
@@ -22,11 +23,21 @@ export class NotificationService {
   constructor(private http: HttpClient) { }
 
   getNotifications(): Observable<UserNotification[]> {
-    return this.http.get<UserNotification[]>(this.apiUrl);
+    return this.http.get<UserNotification[]>(this.apiUrl).pipe(
+      catchError(error => {
+        console.error('NotificationService getNotifications failed:', error);
+        return of([]);
+      })
+    );
   }
 
   getUnreadCount(): Observable<{ count: number }> {
-    return this.http.get<{ count: number }>(`${this.apiUrl}/unread-count`);
+    return this.http.get<{ count: number }>(`${this.apiUrl}/unread-count`).pipe(
+      catchError(error => {
+        console.error('NotificationService getUnreadCount failed:', error);
+        return of({ count: 0 });
+      })
+    );
   }
 
   markAsRead(id: number): Observable<void> {

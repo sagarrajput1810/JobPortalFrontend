@@ -21,7 +21,7 @@ import { environment } from '../../environments/environment';
 })
 export class JobService {
   private apiUrl = `${environment.apiUrl}/job`;
-  private readonly TIMEOUT_MS = 10000; // 10 seconds
+  private readonly TIMEOUT_MS = 60000;
 
   constructor(private http: HttpClient) { }
 

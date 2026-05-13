@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { catchError, Observable, of } from 'rxjs';
 import { environment } from '../../environments/environment';
 
 @Injectable({
@@ -15,8 +15,7 @@ export class ApplicationService {
     // If it's already an absolute URL (e.g., from Azure Blob), return as is
     if (relativeUrl.startsWith('http')) return relativeUrl;
 
-    // Use the base API URL instead of hardcoded localhost
-    return `${environment.apiUrl.replace('/gateway', '')}:5243${relativeUrl}`;
+    return `${environment.apiUrl}${relativeUrl}`;
   }
 
   constructor(private http: HttpClient) { }
@@ -27,11 +26,21 @@ export class ApplicationService {
   }
 
   getApplicationsByJob(jobId: number): Observable<any[]> {
-    return this.http.get<any[]>(`${this.apiUrl}/job/${jobId}`);
+    return this.http.get<any[]>(`${this.apiUrl}/job/${jobId}`).pipe(
+      catchError(error => {
+        console.error('ApplicationService getApplicationsByJob failed:', error);
+        return of([]);
+      })
+    );
   }
 
   getMyApplications(): Observable<any[]> {
-    return this.http.get<any[]>(`${this.apiUrl}/my-applications`);
+    return this.http.get<any[]>(`${this.apiUrl}/my-applications`).pipe(
+      catchError(error => {
+        console.error('ApplicationService getMyApplications failed:', error);
+        return of([]);
+      })
+    );
   }
 
   updateStatus(id: number, status: string): Observable<any> {

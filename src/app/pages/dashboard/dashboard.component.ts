@@ -11,14 +11,7 @@ import { AuthService } from '../../services/auth.service';
     <div class="relative min-h-screen w-full overflow-hidden bg-white dark:bg-gray-950 transition-colors duration-700" (dblclick)="toggleTheme()">
       <!-- Video Background Section -->
       <div class="absolute inset-0 z-0 h-[85vh]">
-        <video 
-          autoplay 
-          muted 
-          loop 
-          playsinline
-          class="w-full h-full object-cover opacity-80 dark:opacity-40 grayscale-[20%] dark:grayscale-[50%] transition-opacity duration-1000">
-          <source src="https://static.videezy.com/system/resources/previews/000/041/113/original/Modern_Corporate_Office_Spaces.mp4" type="video/mp4">
-        </video>
+        <div class="hero-backdrop w-full h-full opacity-80 dark:opacity-40 transition-opacity duration-1000"></div>
         <!-- Sophisticated Overlays -->
         <div class="absolute inset-0 bg-gradient-to-b from-transparent via-white/40 to-white dark:via-gray-950/40 dark:to-gray-950"></div>
         <div class="absolute inset-0 bg-gradient-to-r from-indigo-600/5 to-transparent"></div>
@@ -115,6 +108,22 @@ import { AuthService } from '../../services/auth.service';
     }
     .animate-pulse {
       animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+
+    .hero-backdrop {
+      background:
+        linear-gradient(120deg, rgba(79, 70, 229, 0.18), rgba(255, 255, 255, 0.5)),
+        repeating-linear-gradient(90deg, rgba(17, 24, 39, 0.08) 0 1px, transparent 1px 96px),
+        repeating-linear-gradient(0deg, rgba(17, 24, 39, 0.06) 0 1px, transparent 1px 72px),
+        radial-gradient(circle at 20% 20%, rgba(99, 102, 241, 0.22), transparent 30%),
+        linear-gradient(135deg, #f8fafc 0%, #e0e7ff 45%, #ffffff 100%);
+      background-size: auto, auto, auto, 140% 140%, auto;
+      animation: backdrop-shift 18s ease-in-out infinite alternate;
+    }
+
+    @keyframes backdrop-shift {
+      from { background-position: 0 0, 0 0, 0 0, 0 0, 0 0; }
+      to { background-position: 0 0, 24px 0, 0 18px, 35% 20%, 0 0; }
     }
   `]
 })
