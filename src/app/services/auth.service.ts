@@ -78,6 +78,19 @@ export class AuthService {
     return null;
   }
 
+  isTokenExpired(token: string): boolean {
+    try {
+      const decoded = jwtDecode<{ exp?: number }>(token);
+      if (!decoded.exp) {
+        return true;
+      }
+
+      return decoded.exp * 1000 <= Date.now();
+    } catch {
+      return true;
+    }
+  }
+
   private setUserFromToken(token: string): void {
     try {
       const decoded: any = jwtDecode(token);

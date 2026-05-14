@@ -79,7 +79,7 @@ import { FormsModule } from '@angular/forms';
                     <!-- Actions -->
                     <div class="flex items-center space-x-4 w-full lg:w-auto pt-6 lg:pt-0 border-t lg:border-t-0 border-gray-50 dark:border-gray-800">
                       @if (app.resumeUrl) {
-                        <a [href]="applicationService.getResumeUrl(app.resumeUrl)" target="_blank" 
+                        <a [href]="applicationService.getResumeUrl(app.resumeUrl)" target="_blank" rel="noopener noreferrer"
                           class="flex-1 lg:flex-none text-center bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300 px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-indigo-600 hover:text-white transition-all">
                           View Resume
                         </a>

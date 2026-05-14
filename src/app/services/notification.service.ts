@@ -41,10 +41,20 @@ export class NotificationService {
   }
 
   markAsRead(id: number): Observable<void> {
-    return this.http.put<void>(`${this.apiUrl}/${id}/read`, {});
+    return this.http.put<void>(`${this.apiUrl}/${id}/read`, {}).pipe(
+      catchError(error => {
+        console.error('NotificationService markAsRead failed:', error);
+        return of(undefined);
+      })
+    );
   }
 
   markAllAsRead(): Observable<void> {
-    return this.http.put<void>(`${this.apiUrl}/read-all`, {});
+    return this.http.put<void>(`${this.apiUrl}/read-all`, {}).pipe(
+      catchError(error => {
+        console.error('NotificationService markAllAsRead failed:', error);
+        return of(undefined);
+      })
+    );
   }
 }

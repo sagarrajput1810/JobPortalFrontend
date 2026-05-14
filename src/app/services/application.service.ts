@@ -15,7 +15,11 @@ export class ApplicationService {
     // If it's already an absolute URL (e.g., from Azure Blob), return as is
     if (relativeUrl.startsWith('http')) return relativeUrl;
 
-    return `${environment.apiUrl}${relativeUrl}`;
+    // Ensure environment.apiUrl is used as the base
+    const base = environment.apiUrl.endsWith('/') ? environment.apiUrl.slice(0, -1) : environment.apiUrl;
+    const path = relativeUrl.startsWith('/') ? relativeUrl : `/${relativeUrl}`;
+
+    return `${base}${path}`;
   }
 
   constructor(private http: HttpClient) { }
@@ -43,7 +47,7 @@ export class ApplicationService {
     );
   }
 
-  updateStatus(id: number, status: string): Observable<any> {
-    return this.http.put(`${this.apiUrl}/${id}/status`, { status });
+  updateStatus(id: number, status: string): Observable<string> {
+    return this.http.put(`${this.apiUrl}/${id}/status`, { status }, { responseType: 'text' });
   }
 }
