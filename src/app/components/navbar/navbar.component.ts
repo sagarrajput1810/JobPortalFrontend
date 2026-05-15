@@ -39,6 +39,11 @@ import { Subscription, interval, startWith, switchMap } from 'rxjs';
               My Jobs
             </a>
 
+            <a *ngIf="user.role === 'Admin'" routerLink="/admin/dashboard" routerLinkActive="text-indigo-600 dark:text-indigo-400"
+              class="text-sm font-bold text-gray-600 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors uppercase tracking-widest">
+              Admin Panel
+            </a>
+
             <a routerLink="/profile" routerLinkActive="text-indigo-600 dark:text-indigo-400"
               class="text-sm font-bold text-gray-600 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors uppercase tracking-widest">
               Profile

@@ -1,0 +1,242 @@
+<div class="admin-wrapper">
+
+  <!-- Header -->
+  <div class="admin-header">
+    <div class="admin-header-left">
+      <div class="admin-icon">⚙️</div>
+      <div>
+        <h1 class="admin-title">Admin Panel</h1>
+        <p class="admin-subtitle">Full control over users & platform</p>
+      </div>
+    </div>
+    <!-- Tabs -->
+    <div class="admin-tabs">
+      <button class="tab-btn" [class.active]="activeTab === 'overview'" (click)="activeTab = 'overview'">Overview</button>
+      <button class="tab-btn" [class.active]="activeTab === 'users'" (click)="activeTab = 'users'">Manage Users</button>
+      <button class="tab-btn" [class.active]="activeTab === 'jobs'" (click)="activeTab = 'jobs'">Manage Jobs</button>
+    </div>
+  </div>
+
+  <!-- Toast Messages -->
+  <div class="toast success" *ngIf="actionMessage">✅ {{ actionMessage }}</div>
+  <div class="toast error" *ngIf="actionError">❌ {{ actionError }}</div>
+
+  <!-- ======= OVERVIEW TAB ======= -->
+  <div *ngIf="activeTab === 'overview'">
+    <div class="stats-grid" *ngIf="stats; else noStats">
+      <div class="stat-card purple">
+        <div class="stat-icon">👥</div>
+        <div class="stat-value">{{ stats.totalUsers }}</div>
+        <div class="stat-label">Total Users</div>
+      </div>
+      <div class="stat-card blue">
+        <div class="stat-icon">🎓</div>
+        <div class="stat-value">{{ stats.totalCandidates }}</div>
+        <div class="stat-label">Candidates</div>
+      </div>
+      <div class="stat-card green">
+        <div class="stat-icon">💼</div>
+        <div class="stat-value">{{ stats.totalRecruiters }}</div>
+        <div class="stat-label">Recruiters</div>
+      </div>
+      <div class="stat-card red">
+        <div class="stat-icon">🚫</div>
+        <div class="stat-value">{{ stats.blockedUsers }}</div>
+        <div class="stat-label">Blocked Users</div>
+      </div>
+    </div>
+    <ng-template #noStats>
+      <div class="empty-state">Loading stats...</div>
+    </ng-template>
+
+    <div class="quick-actions">
+      <h2 class="section-title">Quick Actions</h2>
+      <div class="actions-grid">
+        <button class="action-card" (click)="activeTab = 'users'">
+          <span class="action-icon">👤</span>
+          <span>Manage Users</span>
+        </button>
+        <button class="action-card" (click)="activeTab = 'jobs'">
+          <span class="action-icon">📋</span>
+          <span>Manage Jobs</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======= USERS TAB ======= -->
+  <div *ngIf="activeTab === 'users'">
+    <!-- Search & Filter -->
+    <div class="toolbar">
+      <input
+        class="search-input"
+        type="text"
+        placeholder="🔍 Search by name or email..."
+        [(ngModel)]="searchQuery"
+        (input)="applyFilter()"
+      />
+      <select class="filter-select" [(ngModel)]="filterRole" (change)="applyFilter()">
+        <option value="All">All Roles</option>
+        <option value="Candidate">Candidates</option>
+        <option value="Recruiter">Recruiters</option>
+        <option value="Admin">Admins</option>
+      </select>
+    </div>
+
+    <!-- Loading -->
+    <div class="empty-state" *ngIf="isLoading">Loading data...</div>
+
+    <!-- Users Table -->
+    <div class="table-wrapper" *ngIf="!isLoading">
+      <table class="user-table">
+        <thead>
+          <tr>
+            <th>User</th>
+            <th>Role</th>
+            <th>Status</th>
+            <th>Joined</th>
+            <th>Actions</th>
+            <th>Details</th>
+          </tr>
+        </thead>
+        <tbody>
+          <ng-container *ngFor="let user of filteredUsers">
+            <tr [class.blocked-row]="!user.isEmailVerified" [class.expanded-row-active]="expandedUserId === user.id">
+              <td class="user-cell">
+                <div class="user-avatar">{{ user.fullName.charAt(0).toUpperCase() }}</div>
+                <div>
+                  <div class="user-name">{{ user.fullName }}</div>
+                  <div class="user-email">{{ user.email }}</div>
+                </div>
+              </td>
+              <td>
+                <span class="badge" [ngClass]="getRoleBadgeClass(user.role)">{{ user.role }}</span>
+              </td>
+              <td>
+                <span class="status-dot" [class.active-dot]="user.isEmailVerified" [class.blocked-dot]="!user.isEmailVerified">
+                  {{ user.isEmailVerified ? 'Active' : 'Blocked' }}
+                </span>
+              </td>
+              <td class="date-cell">{{ user.createdAt | date:'mediumDate' }}</td>
+              <td class="actions-cell">
+                <select *ngIf="user.role !== 'Admin'" class="role-select" [value]="user.role" (change)="changeRole(user, $any($event.target).value)">
+                  <option value="Candidate">Candidate</option>
+                  <option value="Recruiter">Recruiter</option>
+                </select>
+                <button *ngIf="user.role !== 'Admin' && user.isEmailVerified" class="btn btn-warn" (click)="blockUser(user)">Block</button>
+                <button *ngIf="user.role !== 'Admin' && !user.isEmailVerified" class="btn btn-success" (click)="unblockUser(user)">Unblock</button>
+                <button *ngIf="user.role !== 'Admin'" class="btn btn-danger" (click)="deleteUser(user)">Delete</button>
+              </td>
+              <td>
+                <button class="btn btn-view" *ngIf="user.role !== 'Admin'" (click)="toggleUserDetails(user)">
+                  {{ expandedUserId === user.id ? 'Hide' : 'View Activity' }}
+                </button>
+              </td>
+            </tr>
+            
+            <!-- Expanded Details Row -->
+            <tr *ngIf="expandedUserId === user.id" class="expanded-details-row">
+              <td colspan="6">
+                <div class="expanded-content">
+                  
+                  <!-- Recruiter Jobs View -->
+                  <div *ngIf="user.role === 'Recruiter'">
+                    <h4 class="expanded-title">Posted Jobs ({{ expandedUserJobs.length }})</h4>
+                    <div *ngIf="expandedUserJobs.length === 0" class="text-sm text-gray-500">No jobs posted yet.</div>
+                    <ul class="activity-list">
+                      <li *ngFor="let job of expandedUserJobs">
+                        <div>
+                          <strong class="interactive-link" (click)="viewJob(job.id)" title="View Job Details">{{ job.title }}</strong> at {{ job.companyName }}
+                        </div>
+                        <span class="text-xs text-gray-400">Created: {{ job.createdAt | date:'short' }}</span>
+                      </li>
+                    </ul>
+                  </div>
+
+                  <!-- Candidate Applications View -->
+                  <div *ngIf="user.role === 'Candidate'">
+                    <h4 class="expanded-title">Applied Jobs ({{ expandedUserApps.length }})</h4>
+                    <div *ngIf="expandedUserApps.length === 0" class="text-sm text-gray-500">No applications yet.</div>
+                    <ul class="activity-list">
+                      <li *ngFor="let app of expandedUserApps">
+                        <div>
+                          <strong class="interactive-link" (click)="viewJob(app.jobId)" title="View Job Details">{{ getJobTitle(app.jobId) }}</strong>
+                        </div>
+                        <span class="badge status-badge">{{ app.status }}</span>
+                        <span class="text-xs text-gray-400">Applied: {{ app.appliedDate | date:'short' }}</span>
+                      </li>
+                    </ul>
+                  </div>
+
+                </div>
+              </td>
+            </tr>
+          </ng-container>
+          <tr *ngIf="filteredUsers.length === 0">
+            <td colspan="6" class="empty-state">No users found.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ======= JOBS TAB ======= -->
+  <div *ngIf="activeTab === 'jobs'">
+    <!-- Search & Filter -->
+    <div class="toolbar">
+      <input
+        class="search-input"
+        type="text"
+        placeholder="🔍 Search by job title or company..."
+        [(ngModel)]="jobSearchQuery"
+        (input)="applyJobFilter()"
+      />
+    </div>
+
+    <!-- Loading -->
+    <div class="empty-state" *ngIf="isLoading">Loading jobs...</div>
+
+    <!-- Jobs Table -->
+    <div class="table-wrapper" *ngIf="!isLoading">
+      <table class="user-table">
+        <thead>
+          <tr>
+            <th>Job Title</th>
+            <th>Company</th>
+            <th>Posted By</th>
+            <th>Applicants</th>
+            <th>Created</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let job of filteredJobs">
+            <td>
+              <div class="job-title-cell interactive-link" (click)="viewJob(job.id)" title="View Job Details">{{ job.title }}</div>
+            </td>
+            <td>{{ job.companyName }}</td>
+            <td>
+              <div class="poster-cell">
+                <span class="poster-icon">👤</span> {{ getJobPoster(job.recruiterId) }}
+              </div>
+            </td>
+            <td>
+              <span class="applicant-count interactive-badge" (click)="viewApplicants(job.id)" title="View Applicants">
+                {{ getJobApplicantCount(job.id) }} Applicants
+              </span>
+            </td>
+            <td class="date-cell">{{ job.createdAt | date:'mediumDate' }}</td>
+            <td class="actions-cell">
+              <button class="btn btn-warn" (click)="editJob(job.id)">Edit</button>
+              <button class="btn btn-danger" (click)="deleteJob(job.id)">Delete</button>
+            </td>
+          </tr>
+          <tr *ngIf="filteredJobs.length === 0">
+            <td colspan="6" class="empty-state">No jobs found.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>

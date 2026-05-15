@@ -19,8 +19,11 @@ export const roleGuard: CanActivateFn = (route, state) => {
   const router = inject(Router);
   const expectedRole = route.data['role'];
 
-  if (authService.isLoggedIn() && authService.hasRole(expectedRole)) {
-    return true;
+  if (authService.isLoggedIn()) {
+    // Admin has access to all role-guarded routes
+    if (authService.hasRole('Admin') || authService.hasRole(expectedRole)) {
+      return true;
+    }
   }
 
   router.navigate(['/']);

@@ -50,4 +50,18 @@ export class ApplicationService {
   updateStatus(id: number, status: string): Observable<string> {
     return this.http.put(`${this.apiUrl}/${id}/status`, { status }, { responseType: 'text' });
   }
+
+  // Admin methods
+  getAllApplications(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/all`).pipe(
+      catchError(error => {
+        console.error('ApplicationService getAllApplications failed:', error);
+        return of([]);
+      })
+    );
+  }
+
+  deleteApplication(id: number): Observable<string> {
+    return this.http.delete(`${this.apiUrl}/${id}`, { responseType: 'text' });
+  }
 }

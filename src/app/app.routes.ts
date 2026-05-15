@@ -10,6 +10,7 @@ import { JobFormComponent } from './pages/job-form/job-form.component';
 import { JobApplicantsComponent } from './pages/job-applicants/job-applicants.component';
 import { DashboardComponent } from './pages/dashboard/dashboard.component';
 import { ProfileComponent } from './pages/profile/profile.component';
+import { AdminDashboardComponent } from './pages/admin-dashboard/admin-dashboard.component';
 import { authGuard, roleGuard } from './guards/auth.guard';
 
 export const routes: Routes = [
@@ -53,6 +54,14 @@ export const routes: Routes = [
     component: JobApplicantsComponent,
     canActivate: [authGuard, roleGuard],
     data: { role: 'Recruiter' }
+  },
+
+  // Admin routes
+  {
+    path: 'admin/dashboard',
+    component: AdminDashboardComponent,
+    canActivate: [authGuard, roleGuard],
+    data: { role: 'Admin' }
   },
 
   { path: '**', redirectTo: '' }
