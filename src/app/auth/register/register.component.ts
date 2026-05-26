@@ -46,17 +46,31 @@ export class RegisterComponent {
       },
       error: (err) => {
         let errorMsg = 'Registration failed. Try again.';
-        
+
+        // Extract the error message string from various response shapes
+        let rawMsg = '';
+        if (typeof err.error === 'string') {
+          rawMsg = err.error;
+        } else if (err.error && (err.error.detail || err.error.message)) {
+          rawMsg = err.error.detail || err.error.message;
+        }
+
+        // If the backend resent an OTP for an unverified account, treat it as a
+        // soft-success and redirect to the OTP verification page.
+        if (rawMsg.toLowerCase().includes('not verified') || rawMsg.toLowerCase().includes('otp has been sent')) {
+          this.successMessage.set('A new OTP has been sent to your email. Redirecting...');
+          setTimeout(() => this.router.navigate(['/verify-email'], { queryParams: { email: this.userData.email } }), 2000);
+          return;
+        }
+
         if (err.status === 0) {
           errorMsg = 'Could not connect to the backend server. Please ensure it is running.';
-        } else if (typeof err.error === 'string') {
-          if (err.error.includes('<!DOCTYPE html>')) {
+        } else if (rawMsg) {
+          if (rawMsg.includes('<!DOCTYPE html>')) {
             errorMsg = 'Backend configuration error (HTML response received).';
           } else {
-            errorMsg = err.error;
+            errorMsg = rawMsg;
           }
-        } else if (err.error && (err.error.detail || err.error.message)) {
-          errorMsg = err.error.detail || err.error.message;
         }
 
         this.errorMessage.set(errorMsg);
